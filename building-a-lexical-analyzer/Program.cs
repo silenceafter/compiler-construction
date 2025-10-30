@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            string code = "@ i := 1 to 10 @ do x := x + 1;";
+            string code = "@ i := 1 to 10 @ do x := x"; // "@ i := 1 to 10 @ do x := x + 1;"
             for (int i = 0; i < code.Length; i++)
             {
                 Console.WriteLine($"[{i}] '{code[i]}' (код: {(int)code[i]})");
