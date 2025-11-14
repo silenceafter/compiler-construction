@@ -4,8 +4,7 @@
     {
         static void Main(string[] args)
         {
-            //string code = "for i := 1 to 10 do x := x + 1"; // "@ i := 1 to 10 @ do x := x + 1;"
-            string code = "var\r\n  n, fact: integer;\r\nbegin\r\n  write('Введите число: ');\r\n  readln(n);\r\n  fact := 1;\r\n  for i := 2 to n do\r\n    fact := fact * i;\r\n  writeln('Факториал ', n, ' = ', fact);\r\nend.";
+            string code = "for i := 1 to 10 do x := x + 1"; // "@ i := 1 to 10 @ do x := x + 1;"
 
             var tables = new SymbolTables();
             var tokenCodes = Lexer.AnalyzeWithTables(code, tables);
