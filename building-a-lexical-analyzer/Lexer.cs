@@ -99,6 +99,89 @@ namespace building_a_lexical_analyzer
             return lexemes;
         }
 
+        public static List<(int classCode, int index)> AnalyzeWithTables(string input, SymbolTables tables)
+        {
+            var tokens = new List<(int classCode, int index)>();
+            int position = 0;
+
+            while (position < input.Length)
+            {
+                char ch = input[position];
+                if (char.IsWhiteSpace(ch))
+                {
+                    position++;
+                    continue;
+                }
+
+                string value = "";
+
+                // 👇👇👇 Вот что вы должны вставить вместо комментария 👇👇👇
+                if (IsLetter(ch))
+                {
+                    value += ch;
+                    position++;
+                    while (position < input.Length && IsLetterOrDigit(input[position]))
+                    {
+                        value += input[position];
+                        position++;
+                    }
+                }
+                else if (char.IsDigit(ch))
+                {
+                    value += ch;
+                    position++;
+                    while (position < input.Length && char.IsDigit(input[position]))
+                    {
+                        value += input[position];
+                        position++;
+                    }
+                }
+                else if (ch == ':')
+                {
+                    if (position + 1 < input.Length && input[position + 1] == '=')
+                    {
+                        value = ":=";
+                        position += 2;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Недопустимый символ ':' на позиции {position}");
+                    }
+                }
+                else if (ch == '+' || ch == ';')
+                {
+                    value = ch.ToString();
+                    position++;
+                }
+                else
+                {
+                    throw new ArgumentException($"Недопустимый символ '{ch}' на позиции {position}");
+                }
+                // 👆👆👆 Конец вставки 👆👆👆
+
+                // Теперь классификация через таблицы:
+                var code = tables.GetKeywordOrSeparator(value);
+                if (code.HasValue)
+                {
+                    tokens.Add(code.Value);
+                }
+                else if (char.IsLetter(value[0]))
+                {
+                    tokens.Add(tables.GetOrAddIdentifier(value));
+                }
+                else if (char.IsDigit(value[0]))
+                {
+                    tokens.Add(tables.GetOrAddLiteral(value));
+                }
+                else
+                {
+                    throw new ArgumentException($"Недопустимая лексема '{value}'");
+                }
+            }
+
+            return tokens;
+        }
+
         private static bool IsLetter(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
         private static bool IsLetterOrDigit(char c) => IsLetter(c) || char.IsDigit(c);
     }
