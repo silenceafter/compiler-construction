@@ -1,0 +1,233 @@
+﻿@{
+    ViewData["Title"] = "Синтаксический анализатор";
+}
+
+<div class="container mt-4">
+    <h2>Синтаксический анализатор</h2>
+
+    <form asp-action="Analyze" method="post" class="mb-4">
+        <div class="form-group">
+            <label for="code">Введите код:</label>
+            <textarea class="form-control" id="code" name="code" rows="8">@ViewBag.Code</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Анализировать</button>
+    </form>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger">
+            <strong>Ошибка:</strong> @ViewBag.Error
+        </div>
+    }
+
+    @{
+        var symbolTables = ViewBag.SymbolTables as syntactic_analyzer_app.Models.SymbolTables;
+        var tokens = ViewBag.Tokens as List<(int, int)>;
+        var lexemes = ViewBag.Lexemes as List<syntactic_analyzer_app.Models.Lexeme>;
+    }
+
+    @if (symbolTables != null && tokens != null)
+    {
+        <div class="mt-4">
+            <h3>Результаты анализа:</h3>
+
+            <h4>Токены:</h4>
+            <table class="table table-sm table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Класс</th>
+                        <th>Индекс</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var token in tokens)
+                    {
+                        <tr>
+                            <td>@token.Item1</td>
+                            <td>@token.Item2</td>
+                            <td>
+                                @if (token.Item2 > 0)
+                                {
+                                    switch (token.Item1)
+                                    {
+                                        case 1:
+                                            if (symbolTables.Keywords?.Count >= token.Item2)
+                                            {
+                                                @symbolTables.Keywords[token.Item2 - 1]
+                                            }
+                                            else
+                                            {
+                                                <text>[неизвестное ключевое слово: @token.Item2]</text>
+                                            }
+                                            break;
+                                        case 2:
+                                            if (symbolTables.Separators?.Count >= token.Item2)
+                                            {
+                                                @symbolTables.Separators[token.Item2 - 1]
+                                            }
+                                            else
+                                            {
+                                                <text>[неизвестный разделитель: @token.Item2]</text>
+                                            }
+                                            break;
+                                        case 3:
+                                            if (symbolTables.Literals?.Count >= token.Item2)
+                                            {
+                                                @symbolTables.Literals[token.Item2 - 1]
+                                            }
+                                            else
+                                            {
+                                                <text>[неизвестный литерал: @token.Item2]</text>
+                                            }
+                                            break;
+                                        case 4:
+                                            if (symbolTables.Identifiers?.Count >= token.Item2)
+                                            {
+                                                @symbolTables.Identifiers[token.Item2 - 1]
+                                            }
+                                            else
+                                            {
+                                                <text>[неизвестный идентификатор: @token.Item2]</text>
+                                            }
+                                            break;
+                                        default:
+                                            <text>[неизвестный класс: @token.Item1]</text>
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    <text>[некорректный индекс: @token.Item2]</text>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (lexemes != null && lexemes.Any())
+            {
+                <h4 class="mt-4">Лексемы:</h4>
+                <table class="table table-sm table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Значение</th>
+                            <th>Тип</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lexeme in lexemes)
+                        {
+                            <tr>
+                                <td>@(lexeme?.Value ?? "[null]")</td>
+                                <td>@(lexeme?.Type ?? "[null]")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <h4 class="mt-4">Таблицы символов:</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Ключевые слова:</h5>
+                    <ul>
+                        @if (symbolTables.Keywords?.Any() == true)
+                        {
+                            @foreach (var kw in symbolTables.Keywords)
+                            {
+                                <li>@kw</li>
+                            }
+                        }
+                        else
+                        {
+                            <li><em>пусто</em></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Разделители/Операторы:</h5>
+                    <ul>
+                        @if (symbolTables.Separators?.Any() == true)
+                        {
+                            @foreach (var sep in symbolTables.Separators)
+                            {
+                                <li>@sep</li>
+                            }
+                        }
+                        else
+                        {
+                            <li><em>пусто</em></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <h5>Идентификаторы:</h5>
+                    <ul>
+                        @if (symbolTables.Identifiers?.Any() == true)
+                        {
+                            @foreach (var id in symbolTables.Identifiers)
+                            {
+                                <li>@id</li>
+                            }
+                        }
+                        else
+                        {
+                            <li><em>пусто</em></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Литералы:</h5>
+                    <ul>
+                        @if (symbolTables.Literals?.Any() == true)
+                        {
+                            @foreach (var lit in symbolTables.Literals)
+                            {
+                                <li>@lit</li>
+                            }
+                        }
+                        else
+                        {
+                            <li><em>пусто</em></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+
+    @{
+        var syntaxResult = ViewBag.SyntaxResult as syntactic_analyzer_app.Services.SyntaxAnalyzer.SyntaxResult;
+    }
+
+    @if (syntaxResult != null)
+    {
+        <div class="mt-4">
+            <h3>Синтаксический анализ:</h3>
+            <div class="card">
+                <div class="card-body @(syntaxResult.Success ? "bg-success bg-opacity-10 border-success" : "bg-danger bg-opacity-10 border-danger")">
+                    <h5 class="card-title">Результат: <span class="@(syntaxResult.Success ? "text-success" : "text-danger")">@Html.Raw(syntaxResult.Success ? "✅ Успешно" : "❌ Ошибка")</span></h5>
+                    <p class="card-text">@syntaxResult.Message</p>
+                    @if (!string.IsNullOrEmpty(syntaxResult.ErrorPosition))
+                    {
+                        <p class="card-text"><strong>Позиция ошибки:</strong> @syntaxResult.ErrorPosition</p>
+                    }
+                    @if (syntaxResult.ParseSteps?.Count > 0)
+                    {
+                        <h6 class="mt-2">Шаги разбора:</h6>
+                        <ul class="small">
+                            @foreach (var step in syntaxResult.ParseSteps)
+                            {
+                                <li>@step</li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
